@@ -1,4 +1,7 @@
 #!/bin/bash
+
+#Color
+
 NON="\033[0m"  # unsets color to term's fg color
 K="\033[0;30m"  # black
 R="\033[0;31m"  # red
@@ -20,7 +23,7 @@ EMC="\033[1;36m"
 EMW="\033[1;37m"
 
 # MOTD
-motd="${EMC}Welcome! Laszlo${C}${NON}" #SAY SOMETHING
+motd="${EMY}Welcome! Laszlo${Y}${NON}" #SAY SOMETHING
 
 echo -e "  _________________\n" \
 	"< $motd >\n" \
@@ -35,10 +38,11 @@ echo -e "  _________________\n" \
 	"    /'\_   _/\`\ \n" \
 	"    \___)=(___/\n" \
 	""
+
 #DISK USAGE
 echo -n "已用空間 " 
-echo -ne "$EMG$(df -g | grep disk | awk '{print $3}')$G$NON / "
-echo -e "$EMR$(df -g | grep disk | awk '{print $2}')$R$NON GB"
+echo -ne "$EMG$(df -g | grep disk1 | awk '{print $3}')$G$NON / "
+echo -e "$EMR$(df -g | grep disk1 | awk '{print $2}')$R$NON GB"
 
 #WEATHER
 KEY="" #Your API key at http://opendata.cwb.gov.tw/usages
