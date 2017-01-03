@@ -47,18 +47,19 @@ echo -e "$EMR$(df -g | grep disk1 | awk '{print $2}')$R$NON GB\n"
 #WEATHER
 KEY="" #Your API key at http://opendata.cwb.gov.tw/usages
 wfile="/tmp/weather"
-DATAID1="F-D0047-009" #- 新竹縣未來2天天氣預報
-DATAID2="F-D0047-053" #- 新竹市未來2天天氣預報 1 北區 2 香山區 3 東區
-DATAID3="F-D0047-053" #- 台北市未來2天天氣預報
+DATAID1="F-D0047-009" 	# 新竹縣未來2天天氣預報 location:
+DATAID2="F-D0047-053" 	# 新竹市未來2天天氣預報 location:1 北區 2 香山區 3 東區
+DATAID3="F-D0047-053" 	# 台北市未來2天天氣預報 location:
+localID=3		# Choose above DATAID's locationID
 
-if [ $(($(date +%s)-$(stat -f "%m" $wfile))) -gt 172800 ];then #172800 secs = 2 days
+if [ $(($(date +%s)-$(stat -f "%m" $wfile))) -gt 21600 ];then #172800 secs = 2 days to update file content
 	curl -s "http://opendata.cwb.gov.tw/opendataapi?dataid=${DATAID3}&authorizationkey=${KEY}" | tail -n +27 | sed '$ d' > $wfile #paser dataset and delete last tag
 fi
 
-location=$(xmllint --xpath 'string(//location[3]/locationName)' $wfile)
-#startime=$(xmllint --xpath '//location[3]/weatherElement[10]/time[3]/startTime/text()' $wfile)
-weather=$(xmllint --xpath 'string(//location[3]/weatherElement[10]/time[3]/elementValue/value)' $wfile)
-echo -n ${location}" " && echo ${weather} | sed 's/ //g'
+locations=$(xmllint --xpath 'string(//locationsName)' $wfile)
+location=$(xmllint --xpath 'string(//location['${localID}']/locationName)' $wfile)
+endtime=$(xmllint --xpath '//location['${localID}']/weatherElement[10]/time[1]/endTime/text()' $wfile)
+weather=$(xmllint --xpath 'string(//location['${localID}']/weatherElement[10]/time[1]/elementValue/value)' $wfile)
+echo -e "["${locations}${location}"]  " && echo -e ${weather}"\n" | sed 's/ //g'
 
 #END
-echo ""
