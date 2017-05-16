@@ -44,34 +44,33 @@ echo -ne "$EMG$(df -g | grep disk1 | awk '{print $3}')$G$NON / "
 echo -e "$EMR$(df -g | grep disk1 | awk '{print $2}')$R$NON GB\n"
 
 #WEATHER
-KEY="" # Your API key at http://opendata.cwb.gov.tw/usages
+KEY="" #Your API key at http://opendata.cwb.gov.tw/usages
 wfile="/tmp/weather"
 DATAID1="F-D0047-009" 	# 新竹縣未來2天天氣預報
-#location:1 五峰鄉 2 峨眉鄉 3 尖石鄉 4 寶山鄉 5 新豐鄉 6 北埔鄉 7 橫山鄉 8 關西鎮 9 竹東鎮 10 湖口鄉 11 芎林鄉 12 竹北市 13 新埔鎮
-DATAID2="F-D0047-053" 	# 新竹市未來2天天氣預報 location:1 北區 2 香山區 3 東區
-DATAID3="F-D0047-053" 	# 台北市未來2天天氣預報 location:
+			# location:1 五峰鄉 2 峨眉鄉 3 尖石鄉 4 寶山鄉 5 新豐鄉 6 北埔鄉 7 橫山鄉 8 關西鎮 9 竹東鎮 10 湖口鄉 11 芎林鄉 12 竹北市 13 新埔鎮
+DATAID2="F-D0047-053" 	# 新竹市未來2天天氣預報 
+			# location:1 北區 2 香山區 3 東區
+DATAID3="F-D0047-053" 	# 台北市未來2天天氣預報 
+			# location:
 localID=3		# Choose above DATAID's locationID
 intervals=5400		# Second Time to to update file content
-pingtest="168.95.1.1"	# Test Network Connection
+time=2			# Timeout in N seconds
 
-if ! $( ping -q -c 1 -W 1 ${pingtest} > /dev/null 2>&1);then
-	echo -e "Network is unreachable!\n"
-else
-	if [ ! -e $wfile ];then # Create file
-		touch $wfile
-	else
-		if [ -z $(tail -n 1 $wfile | grep "</dataset>") ];then # Check file's completeness or interrupted
-			rm $wfile && touch $wfile
-		fi
-	fi
-	if [ ! -s $wfile -o $(($(date +%s)-$(stat -f "%m" $wfile))) -gt $intervals ];then #each dataset is at 3 hour intervals
-		curl -s "http://opendata.cwb.gov.tw/opendataapi?dataid=${DATAID2}&authorizationkey=${KEY}" | tail -n +27 | sed '$ d' > $wfile #paser dataset and delete last tag
-	fi
-	locations=$(xmllint --xpath 'string(//locationsName)' $wfile)
-	location=$(xmllint --xpath 'string(//location['${localID}']/locationName)' $wfile)
-	#endtime=$(xmllint --xpath '//location['${localID}']/weatherElement[10]/time[1]/endTime/text()' $wfile)
-	weather=$(xmllint --xpath 'string(//location['${localID}']/weatherElement[10]/time[1]/elementValue/value)' $wfile)
+if [ ! -e ${wfile} ];then # Create file
+	touch ${wfile}
+fi
+if [ ! -s ${wfile} -o $(($(date +%s)-$(stat -f "%m" ${wfile}))) -gt $intervals ];then # If file is empty or not latest. Each dataset is at 3 hour intervals
+	curl -m ${time} -s "http://opendata.cwb.gov.tw/opendataapi?dataid=${DATAID2}&authorizationkey=${KEY}" | tail -n +27 | sed '$ d' > ${wfile} # Get Latest Dataset
+fi
+if [ ! -z $(tail -n 1 ${wfile} | grep "</dataset>") ];then # Check file's completeness or interrupted
+	locations=$(xmllint --xpath 'string(//locationsName)' ${wfile})
+	location=$(xmllint --xpath 'string(//location['${localID}']/locationName)' ${wfile})
+	#endtime=$(xmllint --xpath '//location['${localID}']/weatherElement[10]/time[1]/endTime/text()' ${wfile})
+	weather=$(xmllint --xpath 'string(//location['${localID}']/weatherElement[10]/time[1]/elementValue/value)' ${wfile})
 	echo -e "["${locations}${location}"]  " && echo -e ${weather}"\n" | sed 's/ //g'
+else # If not complete
+	echo -e "Weather Information Timeout\n"
+	rm ${wfile}
 fi
 
 #END
