@@ -56,12 +56,11 @@ localID=3		# Choose above DATAID's locationID
 intervals=5400		# Second Time to to update file content
 time=2			# Timeout in N seconds
 
-if [ ! -e ${wfile} ];then # Create file
-	touch ${wfile}
-fi
-if [ ! -s ${wfile} -o $(($(date +%s)-$(stat -f "%m" ${wfile}))) -gt $intervals ];then # If file is empty or not latest. Each dataset is at 3 hour intervals
-	curl -m ${time} -s "http://opendata.cwb.gov.tw/opendataapi?dataid=${DATAID2}&authorizationkey=${KEY}" | tail -n +27 | sed '$ d' > ${wfile} # Get Latest Dataset
-fi
+[ ! -e ${wfile} ] && touch ${wfile} # Create file
+[ ! -s ${wfile} -o $(($(date +%s)-$(stat -f "%m" ${wfile}))) -gt $intervals ] && \
+curl -m ${time} -s "http://opendata.cwb.gov.tw/opendataapi?dataid=${DATAID2}&authorizationkey=${KEY}" | tail -n +27 | sed '$ d' > ${wfile} 
+# If file is empty or not latest. Each dataset is at 3 hour intervals and then get Latest Dataset
+
 if [ ! -z $(tail -n 1 ${wfile} | grep "</dataset>") ];then # Check file's completeness or interrupted
 	locations=$(xmllint --xpath 'string(//locationsName)' ${wfile})
 	location=$(xmllint --xpath 'string(//location['${localID}']/locationName)' ${wfile})
@@ -70,7 +69,7 @@ if [ ! -z $(tail -n 1 ${wfile} | grep "</dataset>") ];then # Check file's comple
 	echo -e "["${locations}${location}"]  " && echo -e ${weather}"\n" | sed 's/ //g'
 else # If not complete
 	echo -e "Weather Information Timeout\n"
-	rm ${wfile}
+	> ${wfile} # eraser content
 fi
 
 #END
