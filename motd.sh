@@ -34,7 +34,7 @@ echo -ne "${EMG}$(df -g | grep disk1s1 | awk '{print $3}')${NON} / "
 echo -e "${EMR}$(df -g | grep disk1s1 | awk '{print $2}')${NON} GB\n"
 
 #### WEATHER ####
-KEY="" #Your API key at http://opendata.cwb.gov.tw/usages
+KEY="" #Your API key at https://opendata.cwb.gov.tw/user/authkey
 wfile="/tmp/weather"
 intervals=5400        # Second Time to to update file content
 timeout=2        # Timeout in N seconds
