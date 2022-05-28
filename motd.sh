@@ -15,29 +15,30 @@ EMW="\033[1;37m"
 motd=${EMY}"Welcome! Laszlo"${NON} #SAY SOMETHING
 
 echo -e "  _________________\n" \
-	"< $motd >\n" \
-	" -----------------\n" \
-	"   \\ \n" \
-	"    \\ \n" \
-	"        .--.\n" \
-	"       |o_o |\n" \
-	"       |:_/ |\n" \
-	"      //   \ \ \n" \
-	"     (|     | )\n" \
-	"    /'\_   _/\`\ \n" \
-	"    \___)=(___/\n" \
-	""
+    "< $motd >\n" \
+    " -----------------\n" \
+    "   \\ \n" \
+    "    \\ \n" \
+    "        .--.\n" \
+    "       |o_o |\n" \
+    "       |:_/ |\n" \
+    "      //   \ \ \n" \
+    "     (|     | )\n" \
+    "    /'\_   _/\`\ \n" \
+    "    \___)=(___/\n" \
+    ""
 
 #### DISK USAGE ####
-echo -n "已用空間 " 
-echo -ne "${EMG}$(df -g | grep disk1 | awk '{print $3}')${NON} / "
-echo -e "${EMR}$(df -g | grep disk1 | awk '{print $2}')${NON} GB\n"
+echo -n "已用空間 "
+echo -ne "${EMG}$(df -g | grep disk1s1 | awk '{print $3}')${NON} / "
+echo -e "${EMR}$(df -g | grep disk1s1 | awk '{print $2}')${NON} GB\n"
 
 #### WEATHER ####
 KEY="" #Your API key at http://opendata.cwb.gov.tw/usages
 wfile="/tmp/weather"
-intervals=5400		# Second Time to to update file content
-timeout=2		# Timeout in N seconds
+intervals=5400        # Second Time to to update file content
+timeout=2        # Timeout in N seconds
+API_base="https://opendata.cwb.gov.tw/api/v1/rest/datastore"
 DATAID="F-D0047-009"
 district="竹東鎮"
 # 新竹縣未來2天天氣預報 F-D0047-009
@@ -50,17 +51,16 @@ district="竹東鎮"
 
 [ ! -e ${wfile} ] && touch ${wfile} # Create file
 [ ! -s ${wfile} -o $(($(date +%s)-$(stat -f "%m" ${wfile}))) -gt $intervals ] && \
-curl -m ${timeout} -s "https://opendata.cwb.gov.tw/opendataapi?dataid=${DATAID}&authorizationkey=${KEY}" | sed 's/xmlns=".*"//g' > ${wfile}
+curl -m ${timeout} -s "${API_base}/${DATAID}?Authorization=${KEY}" > ${wfile}
 # If file is empty or not latest. Each dataset is at 3 hour intervals and then get Latest Dataset
 
-if [ ! -z $(tail -n 1 ${wfile} | grep "cwbopendata") ];then # Check file's completeness or interrupted
-	locations=$(xmllint --xpath 'string(//locationsName)' ${wfile})
-	location=$(xmllint --xpath 'string(//location/locationName[text()="'${district}'"])' ${wfile})
-	weather=$(xmllint --xpath 'string(//location/locationName[text()="'${district}'"]/following-sibling::weatherElement[11]/time[1]/elementValue/value)' ${wfile})
-	echo -e "${EMW}[${locations}${location}]${NON}  " && echo -ne ${weather}"\n" | sed 's/ //g'
+if [ "$(jq -r '.success' ${wfile})" == "true" ];then # Check file's completeness or interrupted
+    county=$(jq -r '.records.locations[].locationsName' ${wfile})
+    weather=$(jq -r '.records.locations[].location[] | select(.locationName=="'${district}'").weatherElement[6].time[0].elementValue[].value' ${wfile})
+    echo -e "${EMW}[${county}${district}]${NON}  " && echo -ne ${weather}"\n" | sed 's/ //g'
 else # If not complete
-	echo -e "Weather Information Timeout\n"
-	> ${wfile} # eraser content
+    echo -e "Weather Information Timeout\n"
+    > ${wfile} # eraser content
 fi
 
 #END
