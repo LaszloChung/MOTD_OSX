@@ -57,7 +57,7 @@ curl -m ${timeout} -s "${API_base}/${DATAID}?Authorization=${KEY}" > ${wfile}
 if [ "$(jq -r '.success' ${wfile})" == "true" ];then # Check file's completeness or interrupted
     county=$(jq -r '.records.locations[].locationsName' ${wfile})
     weather=$(jq -r '.records.locations[].location[] | select(.locationName=="'${district}'").weatherElement[6].time[0].elementValue[].value' ${wfile})
-    echo -e "${EMW}[${county}${district}]${NON}  " && echo -ne ${weather}"\n" | sed 's/ //g'
+    echo -e "${EMW}[${county}${district}]${NON}" && echo -e "${weather}\n" | sed 's/ //g'
 else # If not complete
     echo -e "Weather Information Timeout\n"
     > ${wfile} # eraser content
