@@ -34,11 +34,11 @@ echo -ne "${EMG}$(df -g | grep disk1s1 | awk '{print $3}')${NON} / "
 echo -e "${EMR}$(df -g | grep disk1s1 | awk '{print $2}')${NON} GB\n"
 
 #### WEATHER ####
-KEY="" #Your API key at https://opendata.cwb.gov.tw/user/authkey
+KEY="" #Your API key at https://opendata.cwa.gov.tw/user/authkey
 wfile="/tmp/weather"
 intervals=5400        # Second Time to to update file content
 timeout=2        # Timeout in N seconds
-API_base="https://opendata.cwb.gov.tw/api/v1/rest/datastore"
+API_base="https://opendata.cwa.gov.tw/api/v1/rest/datastore"
 DATAID="F-D0047-009"
 district="竹東鎮"
 # 新竹縣未來2天天氣預報 F-D0047-009
@@ -47,7 +47,7 @@ district="竹東鎮"
 # district:北區 香山區 東區
 # 台北市未來2天天氣預報 F-D0047-061
 # district:南港區 大安區 內湖區 大同區 文山區 士林區 松山區 萬華區 中正區 信義區 中山區 北投區
-# Data List http://opendata.cwb.gov.tw/datalist
+# Data List https://opendata.cwa.gov.tw/dataset/forecast
 
 [ ! -e ${wfile} ] && touch ${wfile} # Create file
 [ ! -s ${wfile} -o $(($(date +%s)-$(stat -f "%m" ${wfile}))) -gt $intervals ] && \
