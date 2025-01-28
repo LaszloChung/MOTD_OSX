@@ -55,8 +55,8 @@ curl -m ${timeout} -s "${API_base}/${DATAID}?Authorization=${KEY}" > ${wfile}
 # If file is empty or not latest. Each dataset is at 3 hour intervals and then get Latest Dataset
 
 if [ "$(jq -r '.success' ${wfile})" == "true" ];then # Check file's completeness or interrupted
-    county=$(jq -r '.records.locations[].locationsName' ${wfile})
-    weather=$(jq -r '.records.locations[].location[] | select(.locationName=="'${district}'").weatherElement[6].time[0].elementValue[].value' ${wfile})
+    county=$(jq -r '.records.Locations[].LocationsName' ${wfile})
+    weather=$(jq -r '.records.Locations[].Location[] | select(.LocationName=="'${district}'").WeatherElement[9].Time[0].ElementValue[].WeatherDescription' ${wfile})
     echo -e "${EMW}[${county}${district}]${NON}" && echo -e "${weather}\n" | sed 's/ //g'
 else # If not complete
     echo -e "Weather Information Timeout\n"
